@@ -133,6 +133,11 @@ int main(int argc,char* argv[]){
 		printf("Corrupt input file...");
 		return 0;
 	}
+		int max=0;
+	vector<int> str[K];
+	for(int i=0;i<k;i++){
+		max+=arr[i].size();
+	}
 		for(int i=0;i<K;i++){
 	  str[i]=random_init(arr[i],max,V);
 	}
