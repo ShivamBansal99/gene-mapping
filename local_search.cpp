@@ -23,16 +23,24 @@ float cost(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V){
 }
 void random_init(vector<int> str[],int K,int V){
 	int max=0;
-	for(int i=0;i<k;i++){
+	for(int i=0;i<K;i++){
 		max+=str[i].size();
 	}
-	for(int i=0;i<k;i++){
+	for(int i=0;i<K;i++){
 		while(str[i].size()<max){
 			str[i].push_back(V);
 		}
 		random_shuffle(str[i].begin(), str[i].end());
 	}
 	return;
+}
+void print_gene(vector<int> str[],int K){
+	for(int i=0;i<K;i++){
+		for(int j=0;j<str[i].size();j++){
+			printf("%d ",str[i][j]);
+		}
+		printf("\n");
+	}
 }
 int main(int argc,char* argv[]){
 	if(argc<3) return 0;
@@ -47,16 +55,10 @@ int main(int argc,char* argv[]){
 	infile>>time;
 	infile>>V;
 	string s;
-	//infile>>s;
-	infile>>s;
-	
 	char vocab[V];
-	//TO-DO : CONVERT STRING TO ARRAY
-	int j=0;
-	for(int i=0;i<s.length();i++){
-	  vocab[j]=s[i];
-	  j++;
-	  i+=3;
+	for(int i=0;i<V;i++){
+		infile>>s;		  
+		vocab[i]=s[0];
 	}
 	map<char,int> m;
 	for(int i=0;i<V;i++){
@@ -65,32 +67,33 @@ int main(int argc,char* argv[]){
 	infile>>K;
 	
 	string genes[K];
-	//infile>>s;
 	for(int i=0;i<K;i++){
 		infile>>genes[i];
 	}
 	vector<int> arr[K];
 	for(int i=0;i<K;i++){
 	  for(int j=0;j<genes[i].length();j++){
-	    arr[i].push_back(m.get(genes[i][j]));
+	    arr[i].push_back(m[(genes[i][j])]);
 	  }
 	}
 	infile>>CC;
-	vector<vector<float>> MC;
+	vector<vector<float> > MC;
+	vector<float> v;
 	float f;
 	for(int i=0;i<=V;i++){
+		MC.push_back(v);
 		for(int j=0;j<=V;j++){
 		  infile>>f;
 		  MC[i].push_back(f);
 		}
 	}
-	//infile>>s;
 	infile>>s;
 	if(s!="#"){
 		printf("Corrupt input file...");
 		return 0;
 	}
-	
-	
+	random_init(arr,K,V);
+	//print_gene(arr,K);
+	//printf("%f",cost(arr,MC,CC,K,V));
 	return 0;
 }
