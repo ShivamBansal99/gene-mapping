@@ -21,18 +21,18 @@ float cost(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V){
 	  }
 	  return cost1;
 }
-void random_init(vector<int> str[],int K,int V){
-	int max=0;
-	for(int i=0;i<K;i++){
-		max+=str[i].size();
+vector<int> random_init(vector<int> vs,int max,int V){
+	vector<int> v;
+	for(int i=0;i<max;i++){
+		v.push_back(V);	
 	}
-	for(int i=0;i<K;i++){
-		while(str[i].size()<max){
-			str[i].push_back(V);
-		}
-		random_shuffle(str[i].begin(), str[i].end());
-	}
-	return;
+	srand(unsigned(time(0)));
+	int r; 
+	for(int j=0;j<vs.size();j++){
+		r=r+rand()%(max-vs.size()+1+j-r);
+		v[r]=vs[j];							
+	}		
+	return v;
 }
 void print_gene(vector<int> str[],int K){
 	for(int i=0;i<K;i++){
@@ -133,7 +133,24 @@ int main(int argc,char* argv[]){
 		printf("Corrupt input file...");
 		return 0;
 	}
-	random_init(arr,K,V);
+		for(int i=0;i<K;i++){
+	  str[i]=random_init(arr[i],max,V);
+	}
+	float c;
+	float min;
+	vecor<int> store;
+	for(int i=0;i<K;i++){
+	  min=FLT_MAX;
+		for(int q=0;q<5;q++){
+			str[i]=random_init(arr[i],max,V);
+			c=cost(str,MC,CC,K,V);
+			if(min>=c){
+			  min=c;
+			  store=str[i];
+			}
+		}
+		str[i]=store;
+	}
 	//print_gene(arr,K);
 	//printf("%f",cost(arr,MC,CC,K,V));
 	return 0;
