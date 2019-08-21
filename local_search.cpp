@@ -42,6 +42,47 @@ void print_gene(vector<int> str[],int K){
 		printf("\n");
 	}
 }
+void greedy(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V){
+	
+	for(int i=0;i<K;i++){
+		int min=0,max=0;
+		while(str[i][max]==V && max<str[i].size()) max++;
+		max++;
+		cout<<"g1"<<max<<endl;
+		while(str[i][max]==V && max<str[i].size()) max++;
+		cout<<"gh"<<max<<endl;
+		while(max<=str[i].size()){
+			int n=-1;
+			float min_cost=FLT_MAX;
+			int min_index=min;	
+			for(int j=min;j<max && j<str[i].size();j++){
+				if(str[i][j]!=V){						
+					n=str[i][j];
+					str[i][j]=V;
+					break;
+				}
+				if(j==max-1 || j==str[i].size()-1){
+					printf("ERROR in greedy");
+					return;
+				}
+			}
+			cout<<"gred"<<min<<' '<<max<<endl;
+			for(int j=min;j<max && j<str[i].size();j++){
+				str[i][j]=n;
+				float temp = cost(str,MC,CC,K,V);
+				if(temp<=min_cost){							//CAN ADD PROBABILITY FOR EQUAL CASE
+					min_cost = temp;
+					min_index=j;
+				}
+				str[i][j]=V;
+			}
+			str[i][min_index]=n;
+			min=min_index+1;			
+			max++;	
+			while(str[0][max]==V && max<str[0].size()) max++;
+		}
+	}
+}
 int main(int argc,char* argv[]){
 	if(argc<3) return 0;
 	ifstream infile;
