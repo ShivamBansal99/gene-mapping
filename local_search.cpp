@@ -27,9 +27,9 @@ vector<int> random_init(vector<int> vs,int max,int V){
 		v.push_back(V);	
 	}
 	srand(unsigned(time(0)));
-	int r; 
+	int r=0; 
 	for(int j=0;j<vs.size();j++){
-		r=r+rand()%(max-vs.size()+1+j-r);
+		r=r+1+((rand())%(max-vs.size()+j-r));
 		v[r]=vs[j];							
 	}		
 	return v;
@@ -48,9 +48,7 @@ void greedy(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V){
 		int min=0,max=0;
 		while(str[i][max]==V && max<str[i].size()) max++;
 		max++;
-		cout<<"g1"<<max<<endl;
 		while(str[i][max]==V && max<str[i].size()) max++;
-		cout<<"gh"<<max<<endl;
 		while(max<=str[i].size()){
 			int n=-1;
 			float min_cost=FLT_MAX;
@@ -62,11 +60,13 @@ void greedy(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V){
 					break;
 				}
 				if(j==max-1 || j==str[i].size()-1){
+					cout<<j<<' '<<i<<' '<<min<<' '<<max<<' '<<str[i][j]<<endl;
+					print_gene(str,K);
 					printf("ERROR in greedy");
 					return;
 				}
 			}
-			cout<<"gred"<<min<<' '<<max<<endl;
+			//cout<<"gred"<<min<<' '<<max<<endl;
 			for(int j=min;j<max && j<str[i].size();j++){
 				str[i][j]=n;
 				float temp = cost(str,MC,CC,K,V);
@@ -79,7 +79,7 @@ void greedy(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V){
 			str[i][min_index]=n;
 			min=min_index+1;			
 			max++;	
-			while(str[0][max]==V && max<str[0].size()) max++;
+			while(str[i][max]==V && max<str[i].size()) max++;
 		}
 	}
 }
@@ -133,17 +133,18 @@ int main(int argc,char* argv[]){
 		printf("Corrupt input file...");
 		return 0;
 	}
-		int max=0;
+	int max=0;
 	vector<int> str[K];
-	for(int i=0;i<k;i++){
+	for(int i=0;i<K;i++){
 		max+=arr[i].size();
 	}
-		for(int i=0;i<K;i++){
+	for(int i=0;i<K;i++){
 	  str[i]=random_init(arr[i],max,V);
 	}
 	float c;
 	float min;
-	vecor<int> store;
+	vector<int> store;
+
 	for(int i=0;i<K;i++){
 	  min=FLT_MAX;
 		for(int q=0;q<5;q++){
@@ -156,7 +157,11 @@ int main(int argc,char* argv[]){
 		}
 		str[i]=store;
 	}
-	//print_gene(arr,K);
-	//printf("%f",cost(arr,MC,CC,K,V));
+
+	print_gene(str,K);
+	for(int i=0;i<10;i++){
+		greedy(str,MC,CC,K,V);
+	}
+	printf("%f",cost(str,MC,CC,K,V));
 	return 0;
 }
