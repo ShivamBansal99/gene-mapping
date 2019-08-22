@@ -21,12 +21,12 @@ float cost(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V){
 	  }
 	  return cost1;
 }
-vector<int> random_init(vector<int> vs,int max,int V){
+vector<int> random_init(vector<int> vs,int max,int V,int seed){
 	vector<int> v;
 	for(int i=0;i<max;i++){
 		v.push_back(V);	
 	}
-	srand(unsigned(time(0)));
+	srand(unsigned(time(0))*seed);
 	int r=0; 
 	for(int j=0;j<vs.size();j++){
 		r=r+1+((rand())%(max-vs.size()+j-r));
@@ -152,33 +152,44 @@ int main(int argc,char* argv[]){
 	}
 	int max=0;
 	vector<int> str[K];
+	vector<int> min_str[K];
 	for(int i=0;i<K;i++){
 		max+=arr[i].size();
-	}
-	for(int i=0;i<K;i++){
-	  str[i]=random_init(arr[i],max,V);
 	}
 	float c;
 	float min;
 	vector<int> store;
-
-	for(int i=0;i<K;i++){
-	  min=FLT_MAX;
-		for(int q=0;q<5;q++){
-			str[i]=random_init(arr[i],max,V);
-			c=cost(str,MC,CC,K,V);
-			if(min>=c){
-			  min=c;
-			  store=str[i];
-			}
+	float min_cost=FLT_MAX;
+	for(int j=0;j<300;j++){
+		for(int i=0;i<K;i++){
+		  str[i]=random_init(arr[i],max,V,2000*(i+1)+j+i*j+i+1);
 		}
-		str[i]=store;
+		for(int i=0;i<K;i++){
+		  min=FLT_MAX;
+			for(int q=0;q<10;q++){
+				str[i]=random_init(arr[i],max,V,(i+1)*(q+1)*200+2000*(j+1));
+				c=cost(str,MC,CC,K,V);
+				if(min>=c){
+				  min=c;
+				  store=str[i];
+				}
+			}
+			str[i]=store;
+		}
+		//remove_hyp(str,K,V);		
+		for(int i=0;i<50;i++){
+			greedy(str,MC,CC,K,V);
+			if(i%5==4) remove_hyp(str,K,V);		
+		}
+		remove_hyp(str,K,V);
+		
+		float pop=cost(str,MC,CC,K,V);
+		min_cost=min_cost>pop?pop:min_cost;
+		//if(pop==361) print_gene(str,K);
+		//printf("%f\n",cost(str,MC,CC,K,V));
 	}
-	for(int i=0;i<10;i++){
-		greedy(str,MC,CC,K,V);
-	}
-	remove_hyp(str,K,V);
-	print_gene(str,K);
-	printf("%f",cost(str,MC,CC,K,V));
+	cout<<min_cost<<endl;
+	//print_gene(min_str,K);
+	//printf("%f",cost(str,MC,CC,K,V));
 	return 0;
 }
