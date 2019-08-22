@@ -66,7 +66,6 @@ void greedy(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V){
 					return;
 				}
 			}
-			//cout<<"gred"<<min<<' '<<max<<endl;
 			for(int j=min;j<max && j<str[i].size();j++){
 				str[i][j]=n;
 				float temp = cost(str,MC,CC,K,V);
@@ -80,6 +79,24 @@ void greedy(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V){
 			min=min_index+1;			
 			max++;	
 			while(str[i][max]==V && max<str[i].size()) max++;
+		}
+	}
+}
+void remove_hyp(vector<int> str[],int K,int V){
+	for(int i=0;i<str[0].size();){
+		int flag=0;
+		for(int j=0;j<K;j++){
+			if(str[j][i]!=V){
+				flag=1;
+				break;
+			}
+		}
+		if(flag==0){	
+			for(int j=0;j<K;j++){
+				str[j].erase(str[j].begin()+i);
+			}
+		}else{
+			i++;
 		}
 	}
 }
@@ -157,11 +174,11 @@ int main(int argc,char* argv[]){
 		}
 		str[i]=store;
 	}
-
-	print_gene(str,K);
 	for(int i=0;i<10;i++){
 		greedy(str,MC,CC,K,V);
 	}
+	remove_hyp(str,K,V);
+	print_gene(str,K);
 	printf("%f",cost(str,MC,CC,K,V));
 	return 0;
 }
