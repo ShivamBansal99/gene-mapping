@@ -1,6 +1,21 @@
-#include<bits/stdc++.h>
+#include<bits/stdc++.h> 
 #include<iostream>
 using namespace std;
+float updated_cost(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V, int p,int q, int r){
+	  float cost1=0;
+  	  for(int i=0;i<K;i++){	
+		if(i!=p){
+			cost1+=MC[str[i][q]][r];
+		}	  
+	  }
+  	  for(int i=0;i<K;i++){	
+		if(i!=p){
+			cost1-=MC[str[i][q]][V];
+		}	  
+	  }
+	  return cost1;
+}
+
 float cost(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V){
 	  int max=0;
 	  for(int i=0;i<K;i++){
@@ -34,7 +49,15 @@ vector<int> random_init(vector<int> vs,int max,int V,int seed){
 	}		
 	return v;
 }
-void print_gene(vector<int> str[],int K){
+void print_gene(vector<vector<char> > char_str,int K){
+	for(int i=0;i<K;i++){
+		for(int j=0;j<char_str[i].size();j++){
+			printf("%c ",char_str[i][j]);
+		}
+		printf("\n");
+	}
+}
+void print_num(vector<int> str[],int K){
 	for(int i=0;i<K;i++){
 		for(int j=0;j<str[i].size();j++){
 			printf("%d ",str[i][j]);
@@ -42,45 +65,49 @@ void print_gene(vector<int> str[],int K){
 		printf("\n");
 	}
 }
-void greedy(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V){
-	
+bool greedy(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V){
+	int flag=0;
 	for(int i=0;i<K;i++){
 		int min=0,max=0;
 		while(str[i][max]==V && max<str[i].size()) max++;
 		max++;
 		while(str[i][max]==V && max<str[i].size()) max++;
 		while(max<=str[i].size()){
-			int n=-1;
+			int n=-1,prev=-1;
 			float min_cost=FLT_MAX;
 			int min_index=min;	
 			for(int j=min;j<max && j<str[i].size();j++){
 				if(str[i][j]!=V){						
 					n=str[i][j];
+					prev=j;
 					str[i][j]=V;
 					break;
 				}
 				if(j==max-1 || j==str[i].size()-1){
 					cout<<j<<' '<<i<<' '<<min<<' '<<max<<' '<<str[i][j]<<endl;
-					print_gene(str,K);
+					//print_gene(str,K);
 					printf("ERROR in greedy");
-					return;
+					return false;
 				}
 			}
 			for(int j=min;j<max && j<str[i].size();j++){
 				str[i][j]=n;
-				float temp = cost(str,MC,CC,K,V);
+				float temp = updated_cost(str,MC,CC,K,V,i,j,n);
 				if(temp<=min_cost){							//CAN ADD PROBABILITY FOR EQUAL CASE
 					min_cost = temp;
 					min_index=j;
 				}
 				str[i][j]=V;
 			}
+			if(prev!=min_index) flag=1;
 			str[i][min_index]=n;
 			min=min_index+1;			
 			max++;	
 			while(str[i][max]==V && max<str[i].size()) max++;
 		}
 	}
+	if(flag==1) return true;
+	return false;
 }
 void remove_hyp(vector<int> str[],int K,int V){
 	for(int i=0;i<str[0].size();){
@@ -100,17 +127,32 @@ void remove_hyp(vector<int> str[],int K,int V){
 		}
 	}
 }
+vector<vector<char> > convert(vector<int> str[],char vocab[],int K,int V){
+	vector<vector<char> > v;
+	vector<char> v1;
+	for(int i=0;i<K;i++){
+		v.push_back(v1);
+		for(int j=0;j<str[i].size();j++){
+			v[i].push_back(str[i][j]!=V?vocab[str[i][j]]:'-');		
+		}
+	}
+
+	return v;
+}
 int main(int argc,char* argv[]){
+	cout<<unsigned(time(0))<<endl;
 	if(argc<3) return 0;
 	ifstream infile;
 	infile.open(argv[1]);
+	ofstream outfile;
+        outfile.open (argv[2]);
 	if(!infile.is_open()){
 		printf("error opening file...\n");
 		return 0;
 	}
 	int V,K;
-	float time, CC;
-	infile>>time;
+	float timet, CC;
+	infile>>timet;
 	infile>>V;
 	string s;
 	char vocab[V];
@@ -156,40 +198,56 @@ int main(int argc,char* argv[]){
 	for(int i=0;i<K;i++){
 		max+=arr[i].size();
 	}
+	for(int i=0;i<K;i++){
+		min_str[i]=random_init(arr[i],max,V,0);
+	}
 	float c;
 	float min;
 	vector<int> store;
 	float min_cost=FLT_MAX;
+	vector<vector<char> > char_str2 = convert(min_str,vocab,K,V);
+	print_gene(char_str2,K);
 	for(int j=0;j<300;j++){
 		for(int i=0;i<K;i++){
 		  str[i]=random_init(arr[i],max,V,2000*(i+1)+j+i*j+i+1);
 		}
-		for(int i=0;i<K;i++){
-		  min=FLT_MAX;
-			for(int q=0;q<10;q++){
-				str[i]=random_init(arr[i],max,V,(i+1)*(q+1)*200+2000*(j+1));
-				c=cost(str,MC,CC,K,V);
-				if(min>=c){
-				  min=c;
-				  store=str[i];
+		if(j%100==99){
+			for(int i=0;i<K;i++){
+			  min=FLT_MAX;
+				for(int q=0;q<10;q++){
+					str[i]=random_init(arr[i],max,V,(i+1)*(q+1)*200+2000*(j+1));
+					c=cost(str,MC,CC,K,V);
+					if(min>=c){
+					  min=c;
+					  store=str[i];
+					}
 				}
+				str[i]=store;
 			}
-			str[i]=store;
-		}
-		//remove_hyp(str,K,V);		
-		for(int i=0;i<50;i++){
-			greedy(str,MC,CC,K,V);
-			if(i%5==4) remove_hyp(str,K,V);		
+		}	
+		for(int i=0;greedy(str,MC,CC,K,V);i++){
+			if(i%10==9) remove_hyp(str,K,V);		
 		}
 		remove_hyp(str,K,V);
 		
 		float pop=cost(str,MC,CC,K,V);
+		if(min_cost>pop){
+			for(int i=0;i<K;i++){
+				min_str[i]=str[i];
+			}
+		}		
 		min_cost=min_cost>pop?pop:min_cost;
-		//if(pop==361) print_gene(str,K);
-		//printf("%f\n",cost(str,MC,CC,K,V));
 	}
 	cout<<min_cost<<endl;
-	//print_gene(min_str,K);
-	//printf("%f",cost(str,MC,CC,K,V));
+	cout<<unsigned(time(0))<<endl;
+	//print_num(min_str,K);
+	vector<vector<char> > char_str = convert(min_str,vocab,K,V);
+	print_gene(char_str,K);
+	for(int i=0;i<K;i++){
+		for(int j=0;j<char_str[i].size();j++){
+			outfile<<char_str[i][j];
+		}
+		outfile<<'\n';
+	}
 	return 0;
 }
