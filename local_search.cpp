@@ -1,17 +1,17 @@
-#include<bits/stdc++.h> 
+#include<bits/stdc++.h>
 #include<iostream>
 using namespace std;
 float updated_cost(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V, int p,int q, int r){
 	  float cost1=0;
-  	  for(int i=0;i<K;i++){	
+  	  for(int i=0;i<K;i++){
 		if(i!=p){
 			cost1+=MC[str[i][q]][r];
-		}	  
+		}
 	  }
-  	  for(int i=0;i<K;i++){	
+  	  for(int i=0;i<K;i++){
 		if(i!=p){
 			cost1-=MC[str[i][q]][V];
-		}	  
+		}
 	  }
 	  return cost1;
 }
@@ -39,14 +39,29 @@ float cost(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V){
 vector<int> random_init(vector<int> vs,int max,int V,int seed){
 	vector<int> v;
 	for(int i=0;i<max;i++){
-		v.push_back(V);	
+		v.push_back(V);
 	}
 	srand(unsigned(time(0))*seed);
-	int r=0; 
-	for(int j=0;j<vs.size();j++){
-		r=r+1+((rand())%(max-vs.size()+j-r));
-		v[r]=vs[j];							
-	}		
+		if(rand()%2==0){
+			int r=0;
+			for(int j=0;j<vs.size();j++){
+				r=r+1+((rand())%(max-vs.size()+j-r));
+				v[r]=vs[j];
+			}
+		}else{
+			set<int> numbers;
+			while (numbers.size() < vs.size())
+			{
+			    numbers.insert(rand() % max);
+			}
+			set <int> :: iterator itr;
+			int j=0;
+		    for (itr = numbers.begin(); itr != numbers.end(); ++itr)
+		    {
+		        v[*itr]=vs[j];
+						j++;
+		    }
+		}
 	return v;
 }
 void print_gene(vector<vector<char> > char_str,int K){
@@ -75,9 +90,9 @@ bool greedy(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V){
 		while(max<=str[i].size()){
 			int n=-1,prev=-1;
 			float min_cost=FLT_MAX;
-			int min_index=min;	
+			int min_index=min;
 			for(int j=min;j<max && j<str[i].size();j++){
-				if(str[i][j]!=V){						
+				if(str[i][j]!=V){
 					n=str[i][j];
 					prev=j;
 					str[i][j]=V;
@@ -93,7 +108,7 @@ bool greedy(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V){
 			for(int j=min;j<max && j<str[i].size();j++){
 				str[i][j]=n;
 				float temp = updated_cost(str,MC,CC,K,V,i,j,n);
-				if(temp<=min_cost){							//CAN ADD PROBABILITY FOR EQUAL CASE
+				if(temp<min_cost || (temp==min_cost && rand()%2==0)){							//CAN ADD PROBABILITY FOR EQUAL CASE
 					min_cost = temp;
 					min_index=j;
 				}
@@ -101,8 +116,8 @@ bool greedy(vector<int> str[],vector<vector<float> > MC,float CC,int K,int V){
 			}
 			if(prev!=min_index) flag=1;
 			str[i][min_index]=n;
-			min=min_index+1;			
-			max++;	
+			min=min_index+1;
+			max++;
 			while(str[i][max]==V && max<str[i].size()) max++;
 		}
 	}
@@ -116,9 +131,10 @@ void remove_hyp(vector<int> str[],int K,int V){
 			if(str[j][i]!=V){
 				flag=1;
 				break;
+
 			}
 		}
-		if(flag==0){	
+		if(flag==0){
 			for(int j=0;j<K;j++){
 				str[j].erase(str[j].begin()+i);
 			}
@@ -133,19 +149,29 @@ vector<vector<char> > convert(vector<int> str[],char vocab[],int K,int V){
 	for(int i=0;i<K;i++){
 		v.push_back(v1);
 		for(int j=0;j<str[i].size();j++){
-			v[i].push_back(str[i][j]!=V?vocab[str[i][j]]:'-');		
+			v[i].push_back(str[i][j]!=V?vocab[str[i][j]]:'-');
 		}
 	}
 
 	return v;
 }
+void random_remove(vector<int> str[],int K,int V){
+	for(int i=0;i<K;i++){
+		vector<int> v;
+		for(int j=0;j<str[i].size();j++){
+			if(str[i][j]==V){
+				v.push_back(j);
+			}
+		}
+		srand(unsigned(time(0))*v.size());
+		str[i].erase(str[i].begin()+v[rand()%(v.size())]);
+	}
+}
 int main(int argc,char* argv[]){
-	cout<<unsigned(time(0))<<endl;
+	int start_time = unsigned(time(0));
 	if(argc<3) return 0;
 	ifstream infile;
 	infile.open(argv[1]);
-	ofstream outfile;
-        outfile.open (argv[2]);
 	if(!infile.is_open()){
 		printf("error opening file...\n");
 		return 0;
@@ -153,11 +179,13 @@ int main(int argc,char* argv[]){
 	int V,K;
 	float timet, CC;
 	infile>>timet;
+	timet=timet*60;
 	infile>>V;
 	string s;
+	int maxin=0;
 	char vocab[V];
 	for(int i=0;i<V;i++){
-		infile>>s;		  
+		infile>>s;
 		vocab[i]=s[0];
 	}
 	map<char,int> m;
@@ -165,10 +193,15 @@ int main(int argc,char* argv[]){
 	  m.insert(pair<char,int>(vocab[i],i));
 	}
 	infile>>K;
-	
+
 	string genes[K];
 	for(int i=0;i<K;i++){
 		infile>>genes[i];
+	}
+	for(int i=0;i<K;i++){
+		if(maxin<genes[i].length()){
+			maxin=genes[i].length();
+		}
 	}
 	vector<int> arr[K];
 	for(int i=0;i<K;i++){
@@ -198,16 +231,12 @@ int main(int argc,char* argv[]){
 	for(int i=0;i<K;i++){
 		max+=arr[i].size();
 	}
-	for(int i=0;i<K;i++){
-		min_str[i]=random_init(arr[i],max,V,0);
-	}
+
 	float c;
 	float min;
 	vector<int> store;
 	float min_cost=FLT_MAX;
-	vector<vector<char> > char_str2 = convert(min_str,vocab,K,V);
-	print_gene(char_str2,K);
-	for(int j=0;j<300;j++){
+	for(int j=0;unsigned(time(0))-start_time<(timet);j++){
 		for(int i=0;i<K;i++){
 		  str[i]=random_init(arr[i],max,V,2000*(i+1)+j+i*j+i+1);
 		}
@@ -224,30 +253,36 @@ int main(int argc,char* argv[]){
 				}
 				str[i]=store;
 			}
-		}	
-		for(int i=0;greedy(str,MC,CC,K,V);i++){
-			if(i%10==9) remove_hyp(str,K,V);		
+		}
+		//if(rand()%10==0) remove_hyp(str,K,V);
+		for(int i=0;greedy(str,MC,CC,K,V) && i<100;i++){
+			if(i%5==4) remove_hyp(str,K,V);
 		}
 		remove_hyp(str,K,V);
-		
+
 		float pop=cost(str,MC,CC,K,V);
 		if(min_cost>pop){
 			for(int i=0;i<K;i++){
 				min_str[i]=str[i];
 			}
-		}		
-		min_cost=min_cost>pop?pop:min_cost;
+			min_cost=pop;
+		}
+		if(unsigned(time(0))-start_time>(timet)/2){
+			ofstream outfile;
+		  outfile.open (argv[2]);
+			vector<vector<char> > char_str = convert(min_str,vocab,K,V);
+			for(int i=0;i<K;i++){
+				for(int j=0;j<char_str[i].size();j++){
+					outfile<<char_str[i][j];
+				}
+				outfile<<'\n';
+			}
+		}
 	}
 	cout<<min_cost<<endl;
 	cout<<unsigned(time(0))<<endl;
 	//print_num(min_str,K);
 	vector<vector<char> > char_str = convert(min_str,vocab,K,V);
 	print_gene(char_str,K);
-	for(int i=0;i<K;i++){
-		for(int j=0;j<char_str[i].size();j++){
-			outfile<<char_str[i][j];
-		}
-		outfile<<'\n';
-	}
 	return 0;
 }
